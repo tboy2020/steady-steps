@@ -1,0 +1,14 @@
+{
+  "name": "Steady Steps",
+  "short_name": "Steady Steps",
+  "description": "A gentle Grade-2 catch-up in reading and math. Voice-guided, no timers, confidence first.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d5a61",
+  "theme_color": "#146c74",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

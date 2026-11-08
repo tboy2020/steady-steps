@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#146c74">
+<meta name="description" content="Steady Steps — a gentle Grade-2 catch-up in reading and math. Voice-guided, no timers, confidence first.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Steady Steps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#0d5a61; --bg2:#167b84; --bg3:#1f98a2;
+    --card:#ffffff; --ink:#173b3f; --ink-soft:#4a6568;
+    --sun:#ffc94d; --sun-d:#e5a913; --sun-l:#ffe39a;
+    --green:#3bb273; --green-d:#2a8d59;
+    --coral:#ff8a6b; --coral-d:#e4623f;
+    --sky:#4aa3df; --sky-d:#2f80c4;
+    --grape:#8a6dff; --grape-d:#6a49e6;
+    --cream:#f3fbfb; --paper:#fbf6e9; --paper-d:#efe4c8;
+    --read:'Lexend',system-ui,sans-serif;
+    --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; font-family:'Nunito',system-ui,sans-serif; color:var(--cream);
+    background:radial-gradient(130% 95% at 50% -10%, var(--bg3) 0%, var(--bg2) 46%, var(--bg1) 100%) fixed;
+    overflow:hidden; -webkit-user-select:none; user-select:none; touch-action:manipulation;
+  }
+  .app{height:100%; max-width:640px; margin:0 auto; display:flex; flex-direction:column; padding:10px 14px 14px;}
+  .screen{flex:1; display:none; flex-direction:column; min-height:0;}
+  .screen.on{display:flex;}
+  .scrolly{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:6px;}
+
+  /* Top bar */
+  .topbar{display:flex; align-items:center; gap:8px; margin-bottom:8px; flex:0 0 auto;}
+  .chip{display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.14);
+    border:2px solid rgba(255,201,77,.5); border-radius:999px; padding:6px 13px;
+    font-family:'Baloo 2'; font-weight:700; font-size:15px; color:var(--cream);}
+  .chip .ic{font-size:17px; line-height:1;}
+  .chip.name{color:var(--sun-l);}
+  .chip.stars{margin-left:auto; color:var(--sun-l);}
+  .iconbtn{width:44px; height:44px; flex:0 0 auto; border:none; cursor:pointer; color:var(--cream);
+    background:rgba(255,255,255,.14); border:2px solid rgba(255,201,77,.5); border-radius:14px; font-size:20px;}
+  .iconbtn:active{transform:translateY(2px);}
+  .back{font-size:18px;}
+
+  h1,h2,h3{font-family:'Baloo 2'; font-weight:800; margin:0;}
+  .lead{font-size:16px; line-height:1.5; color:var(--cream); opacity:.95;}
+
+  /* Welcome */
+  .welcome{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:16px; padding:10px;}
+  .logo{font-size:62px; line-height:1;}
+  .welcome h1{font-size:34px; color:#fff;}
+  .welcome p{font-size:16px; max-width:360px; line-height:1.5;}
+  .namein{width:100%; max-width:320px; font-family:'Baloo 2'; font-weight:700; font-size:22px; text-align:center;
+    padding:14px 16px; border-radius:16px; border:3px solid var(--sun-d); background:#fff; color:var(--ink); outline:none;}
+  .big-btn{border:none; cursor:pointer; font-family:'Baloo 2'; font-weight:800; font-size:21px; color:#fff;
+    padding:15px 30px; border-radius:18px; background:var(--green); box-shadow:0 6px 0 var(--green-d);}
+  .big-btn:active{transform:translateY(5px); box-shadow:0 1px 0 var(--green-d);}
+  .big-btn.sun{background:var(--sun); color:#5a3d0e; box-shadow:0 6px 0 var(--sun-d);}
+  .big-btn.sun:active{box-shadow:0 1px 0 var(--sun-d);}
+  .big-btn[disabled]{opacity:1; cursor:default; background:#2f7f78; color:rgba(255,255,255,.72); box-shadow:0 6px 0 #22615b; transform:none;}
+
+  /* Home cards */
+  .hello{font-family:'Baloo 2'; font-weight:800; font-size:26px; color:#fff; margin:2px 0 2px;}
+  .subhello{font-size:14px; color:var(--cream); opacity:.9; margin-bottom:14px;}
+  .pathcard{display:flex; align-items:center; gap:16px; width:100%; cursor:pointer; border:none; text-align:left;
+    background:var(--card); color:var(--ink); border-radius:22px; padding:20px 18px; margin-bottom:14px;
+    box-shadow:0 8px 0 rgba(0,0,0,.18);}
+  .pathcard:active{transform:translateY(5px); box-shadow:0 3px 0 rgba(0,0,0,.18);}
+  .pathcard .pe{font-size:46px; line-height:1; flex:0 0 auto;}
+  .pathcard .pt{flex:1;}
+  .pathcard .pt b{font-family:'Baloo 2'; font-size:23px; display:block;}
+  .pathcard .pt span{font-size:14px; color:var(--ink-soft); font-weight:700;}
+  .pathcard.read{background:linear-gradient(135deg,#fff,#eaf6ff);}
+  .pathcard.math{background:linear-gradient(135deg,#fff,#fff2e6);}
+  .mini{font-size:13px; color:var(--cream); opacity:.85; text-align:center; margin-top:4px;}
+
+  /* Menu list */
+  .menu{display:flex; flex-direction:column; gap:12px; margin-top:6px;}
+  .menucard{display:flex; align-items:center; gap:14px; width:100%; cursor:pointer; border:none; text-align:left;
+    background:var(--card); color:var(--ink); border-radius:18px; padding:16px; box-shadow:0 6px 0 rgba(0,0,0,.16);}
+  .menucard:active{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.16);}
+  .menucard .me{font-size:34px; flex:0 0 auto;}
+  .menucard b{font-family:'Baloo 2'; font-size:19px; display:block;}
+  .menucard span{font-size:13px; color:var(--ink-soft); font-weight:700;}
+  .menucard .dot{margin-left:auto; font-size:13px; color:var(--green-d); font-weight:800;}
+
+  /* Generic panel */
+  .panel{background:var(--card); color:var(--ink); border-radius:22px; padding:18px; box-shadow:0 8px 0 rgba(0,0,0,.14);}
+  .panel h2{font-size:22px; margin-bottom:6px;}
+  .panel p{font-size:14.5px; color:var(--ink-soft); line-height:1.5; font-weight:700;}
+
+  /* Reading: sight words */
+  .card-big{background:var(--paper); color:var(--ink); border:3px solid var(--sun-d); border-radius:24px;
+    padding:30px 18px; text-align:center; box-shadow:inset 0 2px 6px rgba(255,255,255,.5), 0 10px 0 rgba(0,0,0,.16);}
+  .word-xl{font-family:var(--read); font-weight:700; font-size:clamp(44px,15vw,74px); color:var(--ink); letter-spacing:1px; word-break:break-word;}
+  .word-xl .lit{color:var(--coral-d); transform:translateY(-4px); display:inline-block;}
+  .rowbtns{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;}
+  .pill{display:inline-flex; align-items:center; gap:8px; border:none; cursor:pointer; color:#fff;
+    font-family:'Baloo 2'; font-weight:700; font-size:16px; padding:13px 18px; min-height:46px; border-radius:999px;}
+  .pill.grape{background:var(--grape); box-shadow:0 5px 0 var(--grape-d);}
+  .pill.sky{background:var(--sky); box-shadow:0 5px 0 var(--sky-d);}
+  .pill.green{background:var(--green); box-shadow:0 5px 0 var(--green-d);}
+  .pill.coral{background:var(--coral); box-shadow:0 5px 0 var(--coral-d);}
+  .pill:active{transform:translateY(4px);}
+  .pill.ghost{background:rgba(255,255,255,.16); border:2px solid rgba(255,201,77,.5); color:var(--cream); box-shadow:none;}
+
+  /* Reading: story */
+  .reader{background:var(--paper); color:#20303a; border-radius:20px; padding:20px 18px;
+    font-family:var(--read); line-height:1.9; box-shadow:0 8px 0 rgba(0,0,0,.14); font-size:var(--rsize,21px);}
+  .reader.dys{font-size:calc(var(--rsize,21px)); letter-spacing:.6px; word-spacing:3px;}
+  .w{cursor:pointer; border-radius:6px; padding:2px 4px; text-decoration:underline; text-decoration-style:dotted; text-decoration-color:rgba(0,0,0,.22); text-underline-offset:3px;}
+  .w:active, .w.hl{background:var(--sun-l);}
+  .toolrow{display:flex; gap:8px; align-items:center; margin:10px 0 2px; flex-wrap:wrap;}
+  .tool{border:none; cursor:pointer; background:rgba(255,255,255,.16); border:2px solid rgba(255,201,77,.45);
+    color:#fff; font-family:'Baloo 2'; font-weight:700; font-size:15px; border-radius:12px; padding:12px 14px; min-height:46px;}
+  .tool:active{transform:translateY(2px);}
+  .tool.on{background:var(--sun); color:#5a3d0e; border-color:var(--sun-d);}
+
+  /* Quiz / choices */
+  .qbox{text-align:center;}
+  .qprompt{font-family:'Baloo 2'; font-weight:800; font-size:clamp(24px,7vw,34px); color:var(--ink); margin:4px 0 2px; line-height:1.25;}
+  .qsub{display:inline-block; font-size:14px; color:#fff; font-weight:800; letter-spacing:.3px; background:rgba(8,40,44,.34); padding:5px 13px; border-radius:999px; min-height:18px;}
+  #spellSentence{display:block; background:none; padding:0; color:var(--ink-soft); font-weight:700; letter-spacing:0;}
+  .qvisual{font-size:clamp(26px,8vw,40px); line-height:1.3; margin:8px 0; min-height:40px; word-break:break-word;}
+  .choices{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;}
+  .choice{border:none; cursor:pointer; background:#fffdf7; color:var(--ink); border:3px solid #e0d4b4;
+    border-radius:16px; padding:18px 10px; font-family:'Baloo 2'; font-weight:800; font-size:clamp(22px,6vw,30px);
+    box-shadow:0 5px 0 rgba(0,0,0,.1);}
+  .choice:active{transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.1);}
+  .choice.good{background:linear-gradient(180deg,#8fe0b0,var(--green)); color:#fff; border-color:var(--green-d); box-shadow:0 5px 0 var(--green-d);}
+  .choice.bad{background:linear-gradient(180deg,#ffb7a3,var(--coral)); color:#fff; border-color:var(--coral-d); animation:shake .35s;}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  @keyframes pop{0%{transform:scale(.7);}60%{transform:scale(1.12);}100%{transform:scale(1);}}
+
+  /* progress ladder */
+  .ladder{display:flex; flex-direction:column; gap:8px; margin-top:4px;}
+  .rung{display:flex; align-items:center; gap:12px; background:#fff; color:var(--ink); border-radius:14px; padding:12px 14px; box-shadow:0 4px 0 rgba(0,0,0,.1);}
+  .rung .re{font-size:24px;}
+  .rung b{font-family:'Baloo 2'; font-size:16px; flex:1;}
+  .rung .state{font-size:12px; font-weight:800; padding:4px 9px; border-radius:999px; background:#eef3f3; color:var(--ink-soft);}
+  .rung.known .state, .rung.mastered .state{background:#d6f3e3; color:var(--green-d);}
+  .rung.learning .state{background:#fff0d4; color:var(--sun-d);}
+  .rung.current{border:3px solid var(--sun-d);}
+  .pips{display:flex; gap:5px; margin-top:10px; justify-content:center;}
+  .pip{width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,.22); border:2px solid rgba(255,255,255,.75);}
+  .pip.on{background:var(--sun); border-color:var(--sun-d); box-shadow:0 0 0 3px rgba(255,201,77,.28);}
+
+  /* build-a-word (spelling) */
+  .slots{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:6px 0;}
+  .slot{width:clamp(44px,11vw,52px); height:clamp(52px,14vw,64px); border-radius:12px; background:var(--paper-d);
+    box-shadow:inset 0 3px 6px rgba(80,60,20,.25); display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2'; font-weight:800; color:var(--ink); font-size:clamp(24px,7vw,36px); cursor:pointer;}
+  .slot.filled{background:linear-gradient(180deg,var(--sun-l),var(--sun)); box-shadow:0 3px 0 var(--sun-d);}
+  .slot.correct{background:linear-gradient(180deg,#8fe0b0,var(--green)); color:#fff; box-shadow:0 3px 0 var(--green-d); animation:pop .3s;}
+  .slot.bad{background:linear-gradient(180deg,#ffb7a3,var(--coral)); color:#fff; box-shadow:0 3px 0 var(--coral-d); animation:shake .35s;}
+  .bank{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; min-height:56px; margin-top:8px;}
+  .tile{width:clamp(48px,12vw,56px); height:clamp(50px,13vw,60px); border:none; cursor:pointer; border-radius:13px;
+    background:linear-gradient(180deg,var(--sun-l),var(--sun)); box-shadow:0 5px 0 var(--sun-d);
+    color:#5a3d0e; font-family:'Baloo 2'; font-weight:800; font-size:clamp(22px,6.5vw,30px);}
+  .tile:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-d);}
+  .tile.used{visibility:hidden;}
+
+  /* number line */
+  .numline{width:100%; height:90px; margin:6px 0;}
+
+  /* clock */
+  .clockwrap{display:flex; justify-content:center; margin:8px 0;}
+
+  /* coins */
+  .coins{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:8px 0;}
+  .coin{width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2'; font-weight:800; font-size:15px; color:#5a3d0e; box-shadow:0 4px 0 rgba(0,0,0,.2);}
+  .coin.p{background:radial-gradient(circle at 35% 30%,#e8a06a,#b9743f);}
+  .coin.n{background:radial-gradient(circle at 35% 30%,#cfd6db,#9aa6ae);}
+  .coin.d{background:radial-gradient(circle at 35% 30%,#dfe6ea,#aeb9c0);}
+  .coin.q{background:radial-gradient(circle at 35% 30%,#e9eef1,#bcc6cc);}
+
+  .feedback{min-height:26px; text-align:center; font-family:'Baloo 2'; font-weight:800; font-size:17px; margin-top:10px;}
+  .feedback.good{color:var(--sun-l);} .feedback.soft{color:var(--cream);}
+
+  /* Toast / scripture */
+  .toast{position:fixed; left:50%; top:auto; bottom:6%; transform:translateX(-50%) translateY(12px);
+    background:#0c3b40; color:#fff; border:2px solid var(--sun-d); padding:13px 19px; border-radius:16px;
+    font-weight:800; font-size:16px; max-width:88%; text-align:center; box-shadow:0 16px 36px rgba(0,0,0,.4);
+    opacity:0; pointer-events:none; transition:opacity .3s, transform .3s; z-index:60; font-family:'Baloo 2';}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast .ref{display:block; margin-top:5px; font-size:12.5px; color:var(--sun-l); font-weight:700;}
+
+  .confetti{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:50;}
+  .conf{position:absolute; font-size:24px; animation:fall 1.2s ease-out forwards;}
+  @keyframes fall{0%{transform:translateY(0) scale(.6) rotate(0); opacity:1;}100%{transform:translateY(-240px) scale(1.2) rotate(230deg); opacity:0;}}
+
+  /* overlay / parent */
+  .overlay{position:fixed; inset:0; background:rgba(8,30,33,.62); display:none; align-items:center; justify-content:center; padding:18px; z-index:80;}
+  .overlay.open{display:flex;}
+  .sheet{width:100%; max-width:470px; background:var(--cream); color:var(--ink); border-radius:24px; padding:20px; box-shadow:0 30px 60px rgba(0,0,0,.45); max-height:90vh; overflow:auto;}
+  .sheet h2{font-size:23px; margin-bottom:4px;}
+  .sheet .sub{color:var(--ink-soft); margin:0 0 14px; font-size:14px; font-weight:700;}
+  .pin-dots{font-size:26px; letter-spacing:10px; min-height:34px; color:var(--ink); margin:6px 0 12px; text-align:center;}
+  .keys{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; max-width:260px; margin:0 auto;}
+  .key{border:2px solid #cfe0e0; background:#fff; cursor:pointer; border-radius:14px; padding:14px 0; font-family:'Baloo 2'; font-weight:800; font-size:22px; color:var(--ink);}
+  .key:active{transform:translateY(2px);}
+  .err{color:#cc4b37; font-weight:800; min-height:18px; margin-top:6px; text-align:center;}
+  .statline{display:flex; justify-content:space-between; padding:9px 2px; border-bottom:1px solid #e2eceb; font-weight:700; font-size:14.5px;}
+  .statline b{font-family:'Baloo 2';}
+  .row{display:flex; gap:10px; margin-top:15px;}
+  .ghost{flex:1; border:2px solid #cfe0e0; background:#fff; cursor:pointer; border-radius:14px; padding:12px; font-family:'Baloo 2'; font-weight:700; font-size:14px; color:var(--ink-soft);}
+  .solid{flex:1; border:none; background:var(--sky); color:#fff; cursor:pointer; border-radius:14px; padding:12px; font-family:'Baloo 2'; font-weight:800; font-size:15px;}
+  .danger{color:#cc4b37; border-color:#f0c6bd;}
+  .hidden{display:none !important;}
+  .footer{text-align:center; font-size:11px; color:rgba(243,251,251,.55); padding:8px 0 2px; font-weight:700; flex:0 0 auto;}
+
+  @media (prefers-reduced-motion: reduce){
+    .conf,.choice.bad,.slot.bad,.slot.correct{animation:none;}
+    .big-btn:active,.pathcard:active,.choice:active,.tile:active,.pill:active{transform:none;}
+  }
+
+  /* ===== design-review polish ===== */
+  .footer.hide{display:none;}
+  button:focus-visible, input:focus-visible{outline:3px solid var(--sun); outline-offset:2px;}
+  .chip{min-height:40px;}
+  .mini{opacity:1; color:var(--sun-l); font-weight:800;}
+  .footer{color:rgba(243,251,251,.72);}
+  .pill.ghost, .tool{border-color:rgba(255,255,255,.42); color:#fff;}
+  .reader{max-width:34em; margin-left:auto; margin-right:auto;}
+  .choice.good::after{content:" \2713";}
+  /* consistent icon tiles */
+  .pathcard .pe, .menucard .me, .rung .re{display:flex; align-items:center; justify-content:center; border-radius:16px; flex:0 0 auto; line-height:1;}
+  .pathcard .pe{width:56px; height:56px; font-size:32px; background:rgba(23,59,63,.06);}
+  .menucard .me{width:50px; height:50px; font-size:28px; background:rgba(23,59,63,.06);}
+  .rung .re{width:40px; height:40px; font-size:22px; background:rgba(23,59,63,.05);}
+  .pathcard.read .pe{background:rgba(74,163,223,.16);}
+  .pathcard.math .pe{background:rgba(255,138,107,.18);}
+  /* equal-width action pairs */
+  .rowbtns.pair{display:grid; grid-template-columns:1fr 1fr; gap:12px; flex-wrap:nowrap;}
+  .rowbtns.pair .pill{width:100%; justify-content:center;}
+  /* vertical balance on short screens */
+  #scr-home .scrolly, #scr-reading .scrolly, #scr-mathmenu .scrolly{display:flex; flex-direction:column;}
+  .pathwrap{margin-top:auto; display:flex; flex-direction:column; gap:14px;}
+  .pathwrap .pathcard{margin-bottom:0;}
+  #homeStars{margin-top:auto; margin-bottom:6px;}
+  .menu-note{margin-top:auto; text-align:center; font-size:13px; color:rgba(243,251,251,.82); font-weight:700; padding:16px 0 6px;}
+  #scr-practice .scrolly, #scr-diag .scrolly{display:flex; flex-direction:column;}
+  #scr-practice .panel{margin-top:auto;}
+  #scr-practice .feedback{margin-bottom:auto;}
+  #diagPlay .panel{margin-top:auto; margin-bottom:auto;}
+  /* landscape: 4-up choices so the task fits */
+  @media (orientation:landscape) and (max-height:480px){ .choices{grid-template-columns:repeat(4,1fr);} .scrolly{padding-bottom:12px;} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- top bar (hidden on welcome) -->
+  <div class="topbar hidden" id="topbar">
+    <button class="iconbtn back hidden" id="backBtn" aria-label="Back">←</button>
+    <div class="chip name"><span class="ic">🙂</span><span id="nameChip">Friend</span></div>
+    <div class="chip stars"><span class="ic">⭐</span><span id="starChip">0</span></div>
+    <button class="iconbtn" id="gearBtn" aria-label="Grown-up settings">⚙️</button>
+  </div>
+
+  <!-- WELCOME -->
+  <div class="screen on" id="scr-welcome">
+    <div class="welcome">
+      <div class="logo">🌱</div>
+      <h1>Steady Steps</h1>
+      <p class="lead">Reading &amp; math, one steady step at a time. Nice and gentle — you can do this.</p>
+      <button class="pill grape" id="welcomeSay" style="margin:0 auto;">🔊 Hear this</button>
+      <input class="namein" id="nameInput" type="text" maxlength="14" autocomplete="off" placeholder="Type your name (or just tap below)" aria-label="Your name">
+      <button class="big-btn" id="startBtn">Let's go!</button>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen" id="scr-home">
+    <div class="scrolly">
+      <div class="hello" id="helloLine">Hi there!</div>
+      <div class="subhello">What would you like to do today?</div>
+      <div class="pathwrap">
+        <button class="pathcard read" data-go="reading">
+          <span class="pe">📖</span>
+          <span class="pt"><b>Reading</b><span>Words, stories &amp; spelling</span></span>
+        </button>
+        <button class="pathcard math" data-go="mathmenu">
+          <span class="pe">🔢</span>
+          <span class="pt"><b>Math</b><span>Count, add, take away &amp; more</span></span>
+        </button>
+      </div>
+      <div class="mini" id="homeStars">Collect stars as you go ⭐</div>
+    </div>
+  </div>
+
+  <!-- READING MENU -->
+  <div class="screen" id="scr-reading">
+    <div class="scrolly">
+      <h2 style="color:#fff; margin-bottom:10px;">📖 Reading</h2>
+      <div class="menu">
+        <button class="menucard" data-go="sight"><span class="me">👀</span><span><b>Word Flash</b><span>Read quick words out loud</span></span></button>
+        <button class="menucard" data-go="story"><span class="me">📚</span><span><b>Story Time</b><span>Read a little story &amp; answer</span></span></button>
+        <button class="menucard" data-go="spell"><span class="me">🔤</span><span><b>Build a Word</b><span>Listen, then spell it</span></span></button>
+      </div>
+      <div class="menu-note">Pick one — no rush 🌱</div>
+    </div>
+  </div>
+
+  <!-- SIGHT WORDS -->
+  <div class="screen" id="scr-sight">
+    <div class="scrolly qbox">
+      <div class="qsub" id="sightCount">Word 1</div>
+      <div class="card-big">
+        <div class="word-xl" id="sightWord">word</div>
+        <div class="rowbtns">
+          <button class="pill grape" id="sightHear"><span>🔊</span> Hear it</button>
+          <button class="pill sky" id="sightSound"><span>🐢</span> Sound it out</button>
+        </div>
+      </div>
+      <div class="rowbtns pair" style="margin-top:14px;">
+        <button class="pill coral" id="sightHelp">🙋 Help</button>
+        <button class="pill green" id="sightGot">I read it! ⭐</button>
+      </div>
+      <div class="feedback soft" id="sightFx"></div>
+    </div>
+  </div>
+
+  <!-- STORY -->
+  <div class="screen" id="scr-story">
+    <div class="scrolly">
+      <div id="storyList"></div>
+      <div id="storyRead" class="hidden">
+        <h2 id="storyTitle" style="color:#fff; margin-bottom:6px;">Story</h2>
+        <div class="toolrow">
+          <button class="tool" id="readAloud">🔊 Read to me</button>
+          <button class="tool" id="txtDown">A−</button>
+          <button class="tool" id="txtUp">A+</button>
+          <button class="tool" id="dysToggle">Easy-read font</button>
+        </div>
+        <div class="reader" id="readerBox"></div>
+        <div class="mini" style="text-align:left; margin:8px 2px;">Tap any word to hear it.</div>
+        <div id="storyQ" class="panel hidden" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPELL (build a word) -->
+  <div class="screen" id="scr-spell">
+    <div class="scrolly qbox">
+      <div class="qsub" id="spellSet">Magic E</div>
+      <div class="card-big">
+        <div style="font-family:'Baloo 2'; font-weight:800; font-size:18px; color:var(--ink-soft); margin-bottom:6px;">Listen, then build the word</div>
+        <div class="rowbtns">
+          <button class="pill grape" id="spellHear"><span>🔊</span> Hear word</button>
+          <button class="pill sky" id="spellSent"><span>📖</span> In a sentence</button>
+        </div>
+        <div class="qsub" id="spellSentence" style="margin-top:8px;"></div>
+        <div class="slots" id="spellSlots"></div>
+        <div class="bank" id="spellBank"></div>
+      </div>
+      <div class="rowbtns pair" style="margin-top:12px;">
+        <button class="pill ghost" id="spellClear">🧹 Clear</button>
+        <button class="pill green" id="spellCheck">Check ✓</button>
+      </div>
+      <div class="feedback soft" id="spellFx"></div>
+    </div>
+  </div>
+
+  <!-- MATH MENU / LADDER -->
+  <div class="screen" id="scr-mathmenu">
+    <div class="scrolly">
+      <h2 style="color:#fff; margin-bottom:8px;">🔢 Math</h2>
+      <div id="mathIntro"></div>
+      <div class="ladder" id="mathLadder"></div>
+      <div class="menu-note">One step at a time 🌱</div>
+    </div>
+  </div>
+
+  <!-- DIAGNOSTIC -->
+  <div class="screen" id="scr-diag">
+    <div class="scrolly">
+      <div id="diagIntro" class="panel"></div>
+      <div id="diagPlay" class="hidden qbox" style="margin-top:4px;">
+        <div class="qsub" id="diagStep">Finding your starting spot…</div>
+        <div class="panel">
+          <div class="qprompt" id="diagPrompt">…</div>
+          <div class="qvisual" id="diagVisual"></div>
+          <div class="choices" id="diagChoices"></div>
+        </div>
+        <div class="rowbtns" style="margin-top:12px;"><button class="pill grape" id="diagSay">🔊 Say it again</button></div>
+      </div>
+      <div id="diagDone" class="hidden panel" style="margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- PRACTICE -->
+  <div class="screen" id="scr-practice">
+    <div class="scrolly">
+      <div class="qsub" id="pracTopic">Topic</div>
+      <div class="pips" id="pracPips"></div>
+      <div class="panel qbox">
+        <div class="qprompt" id="pracPrompt">…</div>
+        <div class="qvisual" id="pracVisual"></div>
+        <div class="choices" id="pracChoices"></div>
+        <div id="pracExtra"></div>
+      </div>
+      <div class="rowbtns" style="margin-top:12px;">
+        <button class="pill grape" id="pracSay">🔊 Say it again</button>
+      </div>
+      <div class="rowbtns pair" style="margin-top:10px;">
+        <button class="pill sky" id="pracHint">💡 Show me how</button>
+        <button class="pill ghost" id="pracSkip">⏭ Skip</button>
+      </div>
+      <div class="feedback" id="pracFx"></div>
+    </div>
+  </div>
+
+  <div class="footer">Steady Steps · Glory to God alone · AMHG</div>
+</div>
+
+<div class="confetti" id="confetti"></div>
+<div class="toast" id="toast"></div>
+
+<!-- Parent overlay -->
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <div id="pinView">
+      <h2>Grown-ups only</h2>
+      <p class="sub">Enter the code to see progress &amp; settings.</p>
+      <div class="pin-dots" id="pinDots"></div>
+      <div class="keys" id="keys"></div>
+      <div class="err" id="pinErr"></div>
+      <div class="row"><button class="ghost" id="pinCancel">Close</button></div>
+    </div>
+    <div id="dashView" class="hidden">
+      <h2 id="dashName">Progress</h2>
+      <p class="sub">A gentle snapshot — no grades, just growth.</p>
+      <div id="dashStats"></div>
+      <div class="row">
+        <button class="ghost" id="changeName">Change name</button>
+        <button class="solid" id="dashDone">Done</button>
+      </div>
+      <div class="row">
+        <button class="ghost danger" id="resetAll">Reset all progress</button>
+      </div>
+      <p class="sub" style="margin-top:12px; font-size:12px;">Tip: let them stop while they're still enjoying it. Little and often builds confidence.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- storage ---------- */
+  function load(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } }
+  function save(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  function loadJSON(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:JSON.parse(v); }catch(e){ return d; } }
+  function saveJSON(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  var KEY="ss_profile_v1";
+  var P = loadJSON(KEY, null);
+  function freshProfile(name){
+    return { name:name||"", stars:0, badges:{},
+      sight:{i:0}, spell:{set:0,i:0},
+      story:{done:{}},
+      math:{ diag:false, floor:0, cur:0, sk:{} } };
+  }
+  function persist(){ saveJSON(KEY, P); }
+
+  /* ---------- speech (hardened) ---------- */
+  var voice=null, speaking=false;
+  function pickVoice(){
+    try{ var vs=speechSynthesis.getVoices(); if(!vs||!vs.length) return;
+      var p=null,i;
+      for(i=0;i<vs.length;i++){ if(/en[-_]US/i.test(vs[i].lang)&&/female|samantha|karen|victoria|zira|jenny|aria|google us/i.test(vs[i].name)){p=vs[i];break;} }
+      if(!p) for(i=0;i<vs.length;i++){ if(/^en/i.test(vs[i].lang)){p=vs[i];break;} }
+      voice=p||vs[0];
+    }catch(e){}
+  }
+  if("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+  function say(text, rate, cb){
+    var done=false; function fire(){ if(done) return; done=true; speaking=false; if(cb) cb(); }
+    if(!("speechSynthesis" in window)||!text){ fire(); return; }
+    try{ var s=speechSynthesis; if(s.speaking||s.pending) s.cancel();
+      var str=String(text);
+      var u=new SpeechSynthesisUtterance(str); u.rate=rate||0.9; u.pitch=1.05; u.lang="en-US";
+      if(voice) u.voice=voice;
+      u.onend=fire; u.onerror=fire;
+      speaking=true; s.speak(u); if(s.paused) s.resume();
+      /* watchdog: if onend never fires (muted device / no voices / headless), advance anyway so the app never stalls */
+      var est=Math.max(1400, Math.round(str.length*62/(rate||0.9))+1200);
+      setTimeout(fire, est);
+    }catch(e){ fire(); }
+  }
+  function stopSpeak(){ try{ if("speechSynthesis" in window) speechSynthesis.cancel(); }catch(e){} speaking=false; }
+
+  /* ---------- helpers ---------- */
+  function R(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function shuffle(a){ a=a.slice(); var i,j,t; for(i=a.length-1;i>0;i--){ j=Math.floor(Math.random()*(i+1)); t=a[i];a[i]=a[j];a[j]=t; } return a; }
+  function uniq(arr){ var o={},out=[],i; for(i=0;i<arr.length;i++){ var k=String(arr[i]); if(!o[k]){o[k]=1;out.push(arr[i]);} } return out; }
+
+  /* ---------- rewards ---------- */
+  var CHEERS=["Well done!","You did it!","Beautiful!","Yes!","Great reading!","Mighty work!","Keep going!","So good!","Brilliant!"];
+  var SCRIPTURE=[
+    {t:"I can do all things through Christ which strengtheneth me.",r:"Philippians 4:13"},
+    {t:"Be strong and of a good courage; be not afraid.",r:"Joshua 1:9"},
+    {t:"The Lord is my helper, I will not fear.",r:"Hebrews 13:6"},
+    {t:"With God all things are possible.",r:"Matthew 19:26"},
+    {t:"The joy of the Lord is your strength.",r:"Nehemiah 8:10"},
+    {t:"Let us not be weary in well doing.",r:"Galatians 6:9"},
+    {t:"He hath made every thing beautiful in his time.",r:"Ecclesiastes 3:11"},
+    {t:"Train up a child in the way he should go.",r:"Proverbs 22:6"},
+    {t:"This is the day which the Lord hath made; we will rejoice.",r:"Psalm 118:24"},
+    {t:"Great is thy faithfulness.",r:"Lamentations 3:23"},
+    {t:"A merry heart doeth good like a medicine.",r:"Proverbs 17:22"},
+    {t:"Being confident that he which hath begun a good work in you will perform it.",r:"Philippians 1:6"},
+    {t:"But they that wait upon the Lord shall renew their strength.",r:"Isaiah 40:31"},
+    {t:"Thy word is a lamp unto my feet.",r:"Psalm 119:105"},
+    {t:"Every good gift is from above.",r:"James 1:17"},
+    {t:"The Lord bless thee, and keep thee.",r:"Numbers 6:24"},
+    {t:"The Lord is my shepherd; I shall not want.",r:"Psalm 23:1"},
+    {t:"With God all things are possible.",r:"Matthew 19:26"},
+    {t:"God hath not given us the spirit of fear; but of power and of love.",r:"2 Timothy 1:7"},
+    {t:"Trust in the Lord with all thine heart.",r:"Proverbs 3:5"},
+    {t:"In all thy ways acknowledge him, and he shall direct thy paths.",r:"Proverbs 3:6"},
+    {t:"I will never leave thee, nor forsake thee.",r:"Hebrews 13:5"},
+    {t:"God is our refuge and strength, a very present help in trouble.",r:"Psalm 46:1"},
+    {t:"Cast thy burden upon the Lord, and he shall sustain thee.",r:"Psalm 55:22"},
+    {t:"Delight thyself also in the Lord.",r:"Psalm 37:4"},
+    {t:"Ye are the light of the world.",r:"Matthew 5:14"},
+    {t:"Let your light so shine before men.",r:"Matthew 5:16"},
+    {t:"For we walk by faith, not by sight.",r:"2 Corinthians 5:7"},
+    {t:"Be ye doers of the word, and not hearers only.",r:"James 1:22"},
+    {t:"Seek ye first the kingdom of God.",r:"Matthew 6:33"},
+    {t:"For with God nothing shall be impossible.",r:"Luke 1:37"},
+    {t:"He giveth power to the faint.",r:"Isaiah 40:29"},
+    {t:"Draw nigh to God, and he will draw nigh to you.",r:"James 4:8"},
+    {t:"Whatsoever ye do, do it heartily, as to the Lord.",r:"Colossians 3:23"},
+    {t:"And we know that all things work together for good to them that love God.",r:"Romans 8:28"},
+    {t:"If God be for us, who can be against us?",r:"Romans 8:31"},
+    {t:"Be still, and know that I am God.",r:"Psalm 46:10"},
+    {t:"The Lord is my light and my salvation; whom shall I fear?",r:"Psalm 27:1"}
+  ];
+  var scrIdx=0;
+  function nextScripture(){ var s=SCRIPTURE[scrIdx%SCRIPTURE.length]; scrIdx++; return s; }
+
+  var toastTimer=null;
+  function toast(text, ref){
+    var t=$("toast"); t.innerHTML=text+(ref?'<span class="ref">— '+ref+'</span>':"");
+    t.classList.add("show"); if(toastTimer) clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ t.classList.remove("show"); }, ref?3600:1700);
+  }
+  function confetti(){
+    if(reduced) return; var box=$("confetti"); var e=["⭐","🌟","✨","🎉","💛","🌈"];
+    for(var i=0;i<16;i++){ var c=document.createElement("span"); c.className="conf"; c.textContent=pick(e);
+      c.style.left=(8+Math.random()*84)+"%"; c.style.bottom=(16+Math.random()*34)+"%";
+      c.style.animationDelay=(Math.random()*0.2)+"s"; c.style.fontSize=(18+Math.random()*18)+"px";
+      box.appendChild(c); (function(n){ setTimeout(function(){ if(n.parentNode) n.parentNode.removeChild(n); },1400); })(c);
+    }
+  }
+  function addStars(n){
+    P.stars += n; persist();
+    $("starChip").textContent=P.stars;
+    var hs=$("homeStars"); if(hs) hs.textContent="You have "+P.stars+" star"+(P.stars===1?"":"s")+" ⭐";
+  }
+  function reward(n, cheer, speakIt){
+    addStars(n); confetti();
+    var msg = cheer || pick(CHEERS);
+    toast(msg); if(speakIt!==false) say(msg, 0.98);
+  }
+
+  /* ---------- router ---------- */
+  var SCREENS=["welcome","home","reading","sight","story","spell","mathmenu","diag","practice"];
+  var stack=[];
+  function showTop(){ var c=cur(); $("topbar").classList.toggle("hidden", c==="welcome"); var f=document.querySelector(".footer"); if(f) f.classList.toggle("hide", c!=="welcome" && c!=="home"); }
+  function cur(){ return stack.length?stack[stack.length-1]:"welcome"; }
+  function render(name){
+    for(var i=0;i<SCREENS.length;i++){ var el=$("scr-"+SCREENS[i]); if(el) el.classList.toggle("on", SCREENS[i]===name); }
+    $("backBtn").classList.toggle("hidden", stack.length<=1 || name==="home");
+    showTop();
+    if(name==="home") onHome();
+    else if(name==="reading"){}
+    else if(name==="sight") startSight();
+    else if(name==="story") showStoryList();
+    else if(name==="spell") startSpell();
+    else if(name==="mathmenu") showMathMenu();
+    else if(name==="diag") showDiagIntro();
+    else if(name==="practice"){}
+  }
+  function go(name){ stopSpeak(); stack.push(name); render(name); var sc=$("scr-"+name); var s=sc&&sc.querySelector(".scrolly"); if(s) s.scrollTop=0; }
+  function back(){ stopSpeak(); if(stack.length>1){ stack.pop(); render(cur()); } }
+  function goHomeRoot(){ stopSpeak(); stack=["home"]; render("home"); }
+
+  $("backBtn").addEventListener("click", back);
+
+  /* ---------- welcome ---------- */
+  function initWelcome(){
+    if(P && P.name){ stack=["home"]; render("home"); return; }
+    stack=["welcome"]; render("welcome");
+    var inp=$("nameInput"), btn=$("startBtn");
+    function begin(){
+      var nm=inp.value.trim(); var name=nm?(nm.charAt(0).toUpperCase()+nm.slice(1)):"Friend";
+      P=freshProfile(name); persist();
+      paintProfile(); goHomeRoot();
+      say("Hi "+P.name+"! Welcome to Steady Steps. Let's have fun.", 0.95);
+    }
+    btn.addEventListener("click", begin);
+    inp.addEventListener("keydown", function(e){ if(e.key==="Enter") begin(); });
+    inp.addEventListener("focus", function(){ setTimeout(function(){ try{ inp.scrollIntoView({block:"center"}); }catch(e){} }, 300); });
+    var ws=$("welcomeSay"); if(ws) ws.addEventListener("click", function(){ say("Welcome to Steady Steps! Reading and math, one steady step at a time. Type your name, then tap, Let's go! You can do this.", 0.95); });
+  }
+  function paintProfile(){
+    $("nameChip").textContent = P.name || "Friend";
+    $("starChip").textContent = P.stars;
+  }
+
+  var HI=["Hi","Hello","Welcome back","Good to see you","Hey"];
+  function onHome(){
+    paintProfile();
+    $("helloLine").textContent = pick(HI)+", "+(P.name||"friend")+"! 👋";
+    var hs=$("homeStars"); hs.textContent = P.stars>0 ? ("You have "+P.stars+" star"+(P.stars===1?"":"s")+" ⭐") : "Collect stars as you go ⭐";
+  }
+  var cards=document.querySelectorAll("[data-go]");
+  for(var ci=0;ci<cards.length;ci++){ (function(el){ el.addEventListener("click", function(){ go(el.getAttribute("data-go")); }); })(cards[ci]); }
+
+  /* ================= READING ================= */
+
+  /* sight words (Grade-2 high frequency) */
+  var SIGHT=["about","after","again","always","another","any","around","ask","because","been",
+    "before","best","better","both","bring","buy","call","carry","clean","cold",
+    "could","does","done","draw","drink","each","eight","every","fall","family",
+    "far","fast","first","five","found","friend","full","gave","give","goes",
+    "going","great","green","grow","hold","hot","hurt","its","keep","kind",
+    "know","last","left","light","little","live","long","made","many","most",
+    "much","must","myself","name","near","need","never","number","off","only",
+    "open","over","own","people","pick","place","play","please","pretty","pull",
+    "put","read","right","round","same","saw","say","school","seven","show",
+    "sing","sit","six","sleep","small","some","soon","start","still","such",
+    "take","tell","ten","thank","their","these","thing","think","those","three",
+    "today","together","try","turn","under","upon","use","very","want","warm",
+    "wash","water","well","went","which","while","wish","work","world","would",
+    "write","year","young","your"];
+  var sIdx=0;
+  function startSight(){ sIdx = (P.sight && P.sight.i) ? P.sight.i % SIGHT.length : 0; showSight(); }
+  function showSight(){
+    var w=SIGHT[sIdx];
+    $("sightCount").textContent="Word "+(sIdx+1)+" of "+SIGHT.length;
+    $("sightWord").textContent=w; $("sightFx").textContent="";
+    setTimeout(function(){ say(w,0.9); },250);
+  }
+  function soundOut(word, box){
+    var el=box||$("sightWord");
+    el.innerHTML=""; var spans=[],i;
+    for(i=0;i<word.length;i++){ var sp=document.createElement("span"); sp.textContent=word.charAt(i); el.appendChild(sp); spans.push(sp); }
+    var k=0;
+    function step(){
+      if(k>0 && spans[k-1]) spans[k-1].className="";
+      if(k>=word.length){ el.textContent=word; say(word,0.85); return; }
+      spans[k].className="lit";
+      say(word.charAt(k), 0.6, function(){ k++; setTimeout(step, 120); });
+    }
+    step();
+  }
+  $("sightHear").addEventListener("click", function(){ say(SIGHT[sIdx],0.9); });
+  $("sightSound").addEventListener("click", function(){ soundOut(SIGHT[sIdx]); });
+  $("sightHelp").addEventListener("click", function(){ $("sightFx").textContent="Listen… "; soundOut(SIGHT[sIdx]); });
+  $("sightGot").addEventListener("click", function(){
+    reward(1, pick(["Great reading!","You read it!","Nice!","Yes!"]));
+    sIdx=(sIdx+1)%SIGHT.length; P.sight.i=sIdx; persist();
+    setTimeout(showSight, 650);
+  });
+
+  /* stories (decodable, Grade-2) */
+  var STORIES=[
+    {id:"pond", t:"At the Pond", e:"🦆", focus:"short vowels",
+     text:"Sam and his dad go to the pond. A duck swims up to them. It wants a snack. Sam has a bit of bread in his bag. He feeds the duck. The duck is glad and quacks a lot.",
+     q:"What did Sam feed the duck?", c:["Some bread","A fish","A nut"], a:0},
+    {id:"cake", t:"The Big Cake", e:"🎂", focus:"magic e",
+     text:"Jane made a cake for her mom. She put it on a white plate. The cake smelled like vanilla. Mom gave Jane a big hug. They ate a slice and it tasted so nice.",
+     q:"Who did Jane make the cake for?", c:["Her mom","Her dog","Her friend"], a:0},
+    {id:"rain", t:"Rain Day", e:"🌧️", focus:"vowel teams",
+     text:"It began to rain on the way home. The street got wet and cool. We put on our coats and ran. Then we saw a bright rainbow in the sky. It made us smile.",
+     q:"What did they see in the sky?", c:["A rainbow","A plane","A kite"], a:0},
+    {id:"farm", t:"On the Farm", e:"🐑", focus:"bossy r",
+     text:"My uncle has a small farm. In the morning we feed the hens and the sheep. A horse named Star lives in the barn. I give her corn from a jar. She is my best farm friend.",
+     q:"What is the name of the horse?", c:["Star","Corn","Barn"], a:0},
+    {id:"ship", t:"The Little Ship", e:"⛵", focus:"digraphs",
+     text:"Josh made a ship from wood. He put it in the bath to see if it would float. It did not sink! It went this way and that. Josh will show it to his class at school.",
+     q:"Where did Josh test the ship?", c:["In the bath","In the sea","In a cup"], a:0},
+    {id:"garden", t:"The Seed", e:"🌻", focus:"long vowels",
+     text:"Grace put a tiny seed in the soil. Each day she gave it water and light. After a week, a green shoot came up. It grew and grew into a tall sunflower. Grace was so proud.",
+     q:"What did the seed grow into?", c:["A sunflower","A tree","A rose"], a:0},
+    {id:"snow", t:"First Snow", e:"⛄", focus:"blends",
+     text:"Snow fell all night while we slept. In the morning the yard was white and soft. We put on warm gloves and built a snowman. We gave him a hat and a big grin. It was the best day.",
+     q:"What did they build?", c:["A snowman","A fort","A nest"], a:0},
+    {id:"help", t:"A Kind Helper", e:"💛", focus:"tricky words",
+     text:"A boy dropped his books by the school gate. People walked past, but one girl stopped. She helped him pick up every book. He said thank you. Being kind made them both happy.",
+     q:"What did the girl do?", c:["Helped pick up books","Ran away","Took a book"], a:0},
+    {id:"puppy", t:"The Lost Puppy", e:"🐶", focus:"short vowels & blends",
+     text:"A small pup got lost in the park. It sat by a bush and gave a sad yip. A girl named Beth found it under a bench. She read the tag and took the pup back to its mom. The pup wagged its tail fast.",
+     q:"Where did Beth find the pup?", c:["Under a bench","Up a tree","By the lake"], a:0},
+    {id:"space", t:"Space Trip", e:"🚀", focus:"long vowels & magic e",
+     text:"Dave had a dream to ride a rocket. He made a space suit from a big box. He put on his helmet and counted down. Three, two, one — blast off! He waved up at the bright moon.",
+     q:"What did Dave make from a box?", c:["A space suit","A kite","A boat"], a:0},
+    {id:"match", t:"The Big Match", e:"⚽", focus:"digraphs ch, sh, th",
+     text:"The team got on the bus for the match. Josh ran up and kicked the ball with a thump. It shot past the goalie and into the net! His coach gave a big cheer. They won the match with a smile.",
+     q:"What did Josh do with the ball?", c:["Kicked it into the net","Lost it","Hid it"], a:0},
+    {id:"soup", t:"Grandma's Soup", e:"🍲", focus:"vowel teams ea, oo",
+     text:"We went to see Grandma on a cool day. She made a big pot of warm bean soup. It had meat and sweet green peas. We each had a bowl by the fire. The soup kept us cozy in the rain.",
+     q:"What did Grandma make?", c:["Bean soup","A cake","Iced tea"], a:0},
+    {id:"night", t:"The Night Sky", e:"🌙", focus:"bossy r & long i",
+     text:"At night we sat out in the yard. Dad pointed to a star that was very far away. We saw the round moon turn bright and white. An owl made a soft hoot in the dark. Then we went in for bed.",
+     q:"What did they watch turn bright?", c:["The moon","A car","The sun"], a:0},
+    {id:"hands", t:"Helping Hands", e:"🌳", focus:"tricky words & -ing",
+     text:"Our class made a plan to help. We cleaned up the yard and planted a little tree by the gate. People walking by smiled and said thank you. Working together made the whole class feel happy and proud.",
+     q:"What did the class plant?", c:["A tree","A flag","A sign"], a:0}
+  ];
+  function showStoryList(){
+    $("storyRead").classList.add("hidden");
+    var box=$("storyList"); box.classList.remove("hidden");
+    var h='<h2 style="color:#fff; margin-bottom:10px;">📚 Story Time</h2><div class="menu">';
+    for(var i=0;i<STORIES.length;i++){ var s=STORIES[i]; var done=P.story.done[s.id];
+      h+='<button class="menucard" data-story="'+i+'"><span class="me">'+s.e+'</span><span><b>'+s.t+'</b><span>'+s.focus+'</span></span>'+(done?'<span class="dot">✓ read</span>':'')+'</button>';
+    }
+    h+='</div>'; box.innerHTML=h;
+    var bs=box.querySelectorAll("[data-story]");
+    for(var k=0;k<bs.length;k++){ (function(el){ el.addEventListener("click", function(){ openStory(parseInt(el.getAttribute("data-story"),10)); }); })(bs[k]); }
+  }
+  var rsize=21, dys=false, curStory=null;
+  function renderReader(){
+    var s=curStory; var box=$("readerBox");
+    box.style.setProperty("--rsize", rsize+"px");
+    box.className="reader"+(dys?" dys":"");
+    var words=s.text.split(" "); var h="",i;
+    for(i=0;i<words.length;i++){ h+='<span class="w">'+words[i]+'</span> '; }
+    box.innerHTML=h;
+    var ws=box.querySelectorAll(".w");
+    for(i=0;i<ws.length;i++){ (function(el){ el.addEventListener("click", function(){
+      var clean=el.textContent.replace(/[^A-Za-z']/g,""); if(clean){ el.classList.add("hl"); say(clean,0.85); setTimeout(function(){ el.classList.remove("hl"); },500); }
+    }); })(ws[i]); }
+  }
+  function openStory(idx){
+    curStory=STORIES[idx]; $("storyList").classList.add("hidden"); $("storyRead").classList.remove("hidden");
+    $("storyTitle").textContent=curStory.e+" "+curStory.t;
+    renderReader();
+    $("dysToggle").classList.toggle("on", dys);
+    var qb=$("storyQ"); qb.classList.add("hidden"); qb.innerHTML="";
+    setTimeout(function(){ renderStoryQ(); }, 400);
+  }
+  var storyAtt=0;
+  function renderStoryQ(){
+    var s=curStory, qb=$("storyQ"); qb.classList.remove("hidden"); storyAtt=0;
+    var h='<h2 style="font-size:19px;">Let\'s check 💭</h2><p style="margin-bottom:8px;">'+s.q+'</p>'+
+      '<div class="rowbtns" style="margin:0 0 10px;"><button class="pill grape" id="storyHearQ">🔊 Hear the question</button></div>'+
+      '<div class="choices" id="sqc"></div>';
+    qb.innerHTML=h;
+    $("storyHearQ").addEventListener("click", function(){ say(s.q,0.95); });
+    var lock={v:false};
+    var order=shuffle([0,1,2]); var grid=$("sqc");
+    for(var i=0;i<order.length;i++){ (function(ci){
+      var b=document.createElement("button"); b.className="choice"; b.style.fontSize="18px"; b.textContent=s.c[ci];
+      b.addEventListener("click", function(){
+        if(lock.v) return;
+        if(ci===s.a){ lock.v=true; b.classList.add("good"); say("That's right! "+s.c[ci]+".",0.95);
+          if(!P.story.done[s.id]){ P.story.done[s.id]=1; reward(2,"You understood the story!"); } else { toast("Nice reading! ⭐"); addStars(1); }
+          setTimeout(showStoryList, 1600);
+        } else {
+          storyAtt++;
+          if(storyAtt<2){ b.classList.add("bad"); say("Close! Look at the story again.",0.95); setTimeout(function(){ b.classList.remove("bad"); }, 700); }
+          else { lock.v=true; var sc=nextScripture();
+            var bs=grid.getElementsByClassName("choice");
+            for(var k=0;k<bs.length;k++){ if(bs[k].textContent===s.c[s.a]) bs[k].classList.add("good"); }
+            toast("Let's look together 🙂", sc.r); addStars(1);
+            say("The answer is "+s.c[s.a]+".",0.92); setTimeout(showStoryList, 2100);
+          }
+        }
+      });
+      grid.appendChild(b);
+    })(order[i]); }
+    setTimeout(function(){ say(s.q, 0.95); }, 300);
+  }
+  $("readAloud").addEventListener("click", function(){ if(curStory) say(curStory.text, 0.86); });
+  $("txtUp").addEventListener("click", function(){ rsize=Math.min(30,rsize+2); renderReader(); });
+  $("txtDown").addEventListener("click", function(){ rsize=Math.max(16,rsize-2); renderReader(); });
+  $("dysToggle").addEventListener("click", function(){ dys=!dys; $("dysToggle").classList.toggle("on",dys); renderReader(); });
+
+  /* build-a-word spelling (reuses dominion-speller banks) */
+  var SPELLBANK=[
+    {name:"Magic E", e:"🪄", words:[["cake","We ate the birthday cake."],["name","Write your name here."],["time","What time is it?"],["home","We are going home now."],["bike","I ride my bike."],["kite","The kite is up high."],["nose","The dog has a wet nose."],["game","Let us play a game."],["ride","Let us ride the bus."],["smile","You have a big smile."],["late","Do not be late."],["hope","I hope you feel better."],["nice","She is very nice."],["side","Sit by my side."],["shape","A ball is a round shape."]]},
+    {name:"Blends", e:"⚡", words:[["stop","Stop at the red light."],["frog","The frog can jump."],["hand","Please hold my hand."],["jump","I can jump up high."],["milk","I drink my milk."],["nest","The bird made a nest."],["gift","I got a nice gift."],["clap","Clap your hands."],["plant","We plant a little seed."],["truck","The truck is very big."],["desk","My books are on the desk."],["swim","We swim in the summer."],["grin","He had a big grin."],["spot","The dog has one spot."],["skip","Watch me skip and hop."]]},
+    {name:"Digraphs", e:"🐟", words:[["ship","The ship is on the sea."],["fish","The fish can swim."],["chin","Wipe your chin."],["that","I like that book."],["then","We ate, and then we slept."],["when","When is your party?"],["with","Come with me."],["bath","Take a warm bath."],["much","Thank you so much."],["shop","We shop for our food."],["chop","We chop the wood."],["such","It was such fun."],["this","This is my house."],["path","Walk on the path."],["rich","The kind king was rich."]]},
+    {name:"Vowel Teams", e:"🌈", words:[["rain","The rain is wet."],["boat","The boat floats."],["seed","Plant the little seed."],["tree","The tree is very tall."],["road","Cross the road safely."],["coat","Wear your warm coat."],["team","Our team won the game."],["moon","The moon is bright."],["play","Let us play outside."],["beach","We swim at the beach."],["meat","We cooked the meat."],["soap","Wash up with soap."],["feet","I have two feet."],["train","The train is very fast."],["sweet","The candy is sweet."]]},
+    {name:"Bossy R", e:"🐎", words:[["car","Dad drives the car."],["star","I see a bright star."],["bird","The bird can sing."],["corn","We eat sweet corn."],["turn","Now it is your turn."],["farm","Cows live on a farm."],["park","We play at the park."],["girl","The girl is very kind."],["horn","The car has a horn."],["dark","It is dark at night."],["hurt","I did not get hurt."],["born","A baby was born."],["shark","A shark has sharp teeth."],["storm","The storm was very loud."],["chair","Sit on the chair."]]},
+    {name:"Tricky Words", e:"👑", words:[["friend","My best friend is here."],["school","I go to school."],["people","Many people came today."],["little","The little dog ran."],["happy","I feel so happy."],["again","Let us do it again."],["water","Please drink some water."],["house","We live in a house."],["family","I love my family."],["pretty","The flower is pretty."],["mouse","The mouse is very small."],["funny","That joke is funny."],["another","I want another one."],["birthday","Happy birthday to you!"],["favorite","Blue is my favorite color."]]}
+  ];
+  var spSet=0, spQueue=[], spI=0, spWord="", spSent="", spSlots=[], spFill=[], spTiles=[], spAtt=0, spLock=false;
+  function startSpell(){ spSet=(P.spell&&P.spell.set)||0; if(spSet>=SPELLBANK.length) spSet=0; buildSpQueue(); loadSpWord(); }
+  function buildSpQueue(){ spQueue=shuffle(SPELLBANK[spSet].words); spI=0; $("spellSet").textContent=SPELLBANK[spSet].e+" "+SPELLBANK[spSet].name; }
+  function spDecoys(word,n){ var al="abcdefghijklmnopqrstuvwxyz",out=[],have={},i,tr=0; for(i=0;i<word.length;i++) have[word.charAt(i)]=1;
+    while(out.length<n&&tr<200){ var c=al.charAt(R(0,25)); if(!have[c]){ have[c]=1; out.push(c); } tr++; } return out; }
+  function loadSpWord(){
+    var it=spQueue[spI]; spWord=it[0]; spSent=it[1]; spAtt=0; spLock=false;
+    spSlots=[]; spFill=[]; var i; for(i=0;i<spWord.length;i++){ spSlots.push(null); spFill.push(null); }
+    spTiles=shuffle(spWord.split("").concat(spDecoys(spWord,2))).map(function(c){ return {ch:c,used:false}; });
+    $("spellSentence").textContent=""; $("spellFx").textContent="";
+    renderSpSlots(); renderSpBank();
+    setTimeout(function(){ say(spWord,0.85); },250);
+  }
+  function renderSpSlots(state){
+    var box=$("spellSlots"); box.innerHTML="";
+    for(var i=0;i<spSlots.length;i++){ (function(idx){
+      var d=document.createElement("div"); d.className="slot"; if(spSlots[idx]!=null){ d.textContent=spSlots[idx]; d.className+=" "+(state||"filled"); }
+      d.addEventListener("click", function(){ spOnSlot(idx); }); box.appendChild(d);
+    })(i); }
+  }
+  function renderSpBank(){
+    var box=$("spellBank"); box.innerHTML="";
+    for(var i=0;i<spTiles.length;i++){ (function(idx){
+      var b=document.createElement("button"); b.className="tile"+(spTiles[idx].used?" used":""); b.textContent=spTiles[idx].ch;
+      b.addEventListener("click", function(){ spOnTile(idx); }); box.appendChild(b);
+    })(i); }
+  }
+  function spOnTile(i){ if(spLock||spTiles[i].used) return; var s=-1,k; for(k=0;k<spSlots.length;k++){ if(spSlots[k]==null){ s=k; break; } } if(s<0) return;
+    spSlots[s]=spTiles[i].ch; spFill[s]=i; spTiles[i].used=true; renderSpSlots(); renderSpBank(); }
+  function spOnSlot(s){ if(spLock||spSlots[s]==null) return; var bi=spFill[s]; if(bi!=null&&spTiles[bi]) spTiles[bi].used=false; spSlots[s]=null; spFill[s]=null; renderSpSlots(); renderSpBank(); }
+  function spClear(){ for(var i=0;i<spSlots.length;i++){ var bi=spFill[i]; if(bi!=null&&spTiles[bi]) spTiles[bi].used=false; spSlots[i]=null; spFill[i]=null; } renderSpSlots(); renderSpBank(); }
+  function spBlankSent(){ try{ return spSent.replace(new RegExp("\\b"+spWord+"\\b","i"),"———"); }catch(e){ return spSent; } }
+  function spNext(){ spI++; if(spI>=spQueue.length){ buildSpQueue(); toast("New words! Keep going 🌟"); } loadSpWord(); }
+  function spCheck(){
+    if(spLock) return; var built="",i; for(i=0;i<spSlots.length;i++){ if(spSlots[i]==null){ $("spellFx").textContent="Fill all the boxes first 🙂"; return; } built+=spSlots[i]; }
+    if(built===spWord){ spLock=true; renderSpSlots("correct"); reward(1,"You spelled "+spWord+"!"); say("Yes! You spelled "+spWord+"!",0.9); setTimeout(spNext,1500); }
+    else { spAtt++; if(spAtt<2){ renderSpSlots("bad"); $("spellFx").textContent="Not quite — try again!"; say("Almost! Try again.",0.95); setTimeout(spClear,750); }
+      else { spLock=true; spClear(); for(i=0;i<spSlots.length;i++) spSlots[i]=spWord.charAt(i); renderSpSlots("correct");
+        $("spellFx").textContent="The word is: "+spWord; addStars(1); say("The word is "+spWord+". "+spWord.split("").join(", ")+". "+spWord+".",0.82, function(){ setTimeout(spNext,700); }); } }
+  }
+  $("spellHear").addEventListener("click", function(){ say(spWord,0.85); });
+  $("spellSent").addEventListener("click", function(){ $("spellSentence").textContent=spBlankSent(); say(spSent,0.9); });
+  $("spellClear").addEventListener("click", function(){ if(!spLock) spClear(); });
+  $("spellCheck").addEventListener("click", spCheck);
+
+  /* ================= MATH ================= */
+  var MASTER=4; // gentle: 4 in a row
+  var TOPICS=[
+    {id:"count", e:"🔟", n:"Count & Compare", strat:"Count carefully and compare which is more.", gen:genCompare},
+    {id:"add20", e:"➕", n:"Add to 20", strat:"Make ten first, or use doubles you know.", gen:genAdd20},
+    {id:"sub20", e:"➖", n:"Take Away to 20", strat:"Start at the small number and count up.", gen:genSub20},
+    {id:"place", e:"📍", n:"Tens & Ones", strat:"The left digit is tens, the right digit is ones.", gen:genPlace},
+    {id:"add100", e:"🧮", n:"Add Bigger Numbers", strat:"Stack them. Add the ones first, carry if you reach ten.", gen:genAdd100},
+    {id:"sub100", e:"🪜", n:"Take Away Bigger Numbers", strat:"Stack them. Take away the ones first, borrow if you need to.", gen:genSub100},
+    {id:"skip", e:"🦘", n:"Skip Counting", strat:"Find how much it jumps each time, then keep the pattern.", gen:genSkip},
+    {id:"evenodd", e:"🔵", n:"Even & Odd", strat:"Look at the last digit. 0,2,4,6,8 is even. 1,3,5,7,9 is odd.", gen:genEvenOdd},
+    {id:"money", e:"🪙", n:"Count Money", strat:"Add the coins up: quarters 25, dimes 10, nickels 5, pennies 1.", gen:genMoney},
+    {id:"time", e:"🕒", n:"Tell the Time", strat:"The short hand is the hour. The long hand shows the minutes.", gen:genTime},
+    {id:"arrays", e:"✖️", n:"Groups & Arrays", strat:"Count the rows and add the group again and again.", gen:genArrays},
+    {id:"word", e:"📖", n:"Story Problems", strat:"Read slowly. Decide if you add or take away, then work it out.", gen:genWord},
+    {id:"fractions", e:"🍕", n:"Halves & Quarters", strat:"A half is 2 equal parts; a quarter is 4 equal parts.", gen:genFraction},
+    {id:"shapes", e:"🔷", n:"Shapes & Sides", strat:"Count the straight sides around the shape.", gen:genShapes}
+  ];
+  function tIndex(id){ for(var i=0;i<TOPICS.length;i++){ if(TOPICS[i].id===id) return i; } return -1; }
+  function skOf(id){ if(!P.math.sk[id]) P.math.sk[id]={st:"open",streak:0,reps:0}; return P.math.sk[id]; }
+
+  /* ---- generators: each returns {prompt, speak, answer, choices, visual, extra, hint} ---- */
+  function choicesFrom(ans, lo, hi, spread){
+    var set=[ans], tries=0; spread=spread||5;
+    while(set.length<4 && tries<80){ var d=ans + (R(0,1)?1:-1)*R(1,spread); if(d>=lo && d<=hi && set.indexOf(d)<0) set.push(d); tries++; }
+    while(set.length<4){ var r=R(lo,hi); if(set.indexOf(r)<0) set.push(r); }
+    return shuffle(set);
+  }
+  function genCompare(){
+    var a=R(2,20), b=R(2,20); while(b===a) b=R(2,20);
+    var more=R(0,1); var ans=more? Math.max(a,b):Math.min(a,b);
+    return { prompt:"Which is "+(more?"MORE":"LESS")+"?", speak:"Which is "+(more?"more":"less")+", "+a+" or "+b+"?",
+      answer:ans, choices:shuffle([a,b]),
+      visual:"", hint:(more?"The bigger number is "+ans+".":"The smaller number is "+ans+".") };
+  }
+  function genAdd20(){ var a=R(2,9), b=R(2,20-a>9?9:20-a); if(a+b>20){ b=R(1,20-a); }
+    var ans=a+b; return { prompt:a+" + "+b+" = ?", speak:a+" plus "+b, answer:ans, choices:choicesFrom(ans,0,25,4),
+      visual:dots(a)+" + "+dots(b), hint:"Let's make ten. "+(a>=b?a:b)+" needs a few more to reach ten, then add the rest. "+a+" plus "+b+" is "+ans+"." }; }
+  function genSub20(){ var a=R(6,20), b=R(1,a-1); var ans=a-b;
+    return { prompt:a+" − "+b+" = ?", speak:a+" take away "+b, answer:ans, choices:choicesFrom(ans,0,20,4),
+      hint:"Start at "+b+" and count up to "+a+". That is "+ans+" steps. So "+a+" take away "+b+" is "+ans+"." }; }
+  function genPlace(){
+    var kind=R(0,2);
+    if(kind===0){ var n=R(21,99); var tens=Math.floor(n/10); return { prompt:"How many TENS in "+n+"?", speak:"How many tens are in "+n+"?", answer:tens, choices:choicesFrom(tens,1,9,2), hint:"In "+n+", the left digit is the tens. That is "+tens+" tens." }; }
+    if(kind===1){ var m=R(21,99); var ones=m%10; return { prompt:"How many ONES in "+m+"?", speak:"How many ones are in "+m+"?", answer:ones, choices:choicesFrom(ones,0,9,2), hint:"In "+m+", the right digit is the ones. That is "+ones+" ones." }; }
+    var t=R(2,9), o=R(0,9); var v=t*10+o; return { prompt:t+" tens and "+o+" ones = ?", speak:t+" tens and "+o+" ones make what number?", answer:v, choices:choicesFrom(v,10,99,6), hint:t+" tens is "+(t*10)+", plus "+o+" ones, makes "+v+"." };
+  }
+  function genAdd100(){ var carry=R(0,1); var a,b;
+    if(carry){ a=R(15,59); b=R(15,89-a>40?40:89-a); if((a%10)+(b%10)<10) b+= (10-((a%10)+(b%10)))+R(0,2); if(a+b>99) b=99-a; }
+    else { var at=R(1,4),ao=R(0,4),bt=R(1,4),bo=R(0,9-ao); a=at*10+ao; b=bt*10+bo; }
+    if(b<10) b=R(11,20);
+    if(b>a){ var tmp=a; a=b; b=tmp; }   /* bigger number on top, like we teach */
+    var ans=a+b;
+    return { prompt:a+" + "+b+" = ?", speak:a+" plus "+b, answer:ans, choices:choicesFrom(ans,10,160,8),
+      hint:"Stack them with the bigger number on top. Add the ones: "+(a%10)+" plus "+(b%10)+". Then the tens. "+a+" plus "+b+" is "+ans+".", stack:[a,b,"+"] }; }
+  function genSub100(){ var a=R(25,99), b=R(11,a-5); var ans=a-b;
+    return { prompt:a+" − "+b+" = ?", speak:a+" take away "+b, answer:ans, choices:choicesFrom(ans,0,99,8),
+      hint:"Stack them with "+a+" on top. Take away the ones first"+((a%10)<(b%10)?", borrow a ten if you need to":"")+". "+a+" take away "+b+" is "+ans+".", stack:[a,b,"−"] }; }
+  function genSkip(){ var step=pick([2,5,10]); var start=step*R(1,4); var seq=[start,start+step,start+2*step,start+3*step];
+    var hideAt=R(1,3); var shown=seq.slice(); var ans=seq[hideAt]; shown[hideAt]="__";
+    return { prompt:"What is the missing number?", speak:"Count by "+step+"s. What comes here? "+seq[0]+", "+seq[1]+", and so on.", answer:ans, choices:choicesFrom(ans,step,seq[3]+step,step),
+      visual:shown.join("  ·  "), hint:"We are counting by "+step+"s. Each number is "+step+" more. The missing one is "+ans+"." }; }
+  function genEvenOdd(){ var n=R(2,60); var even=(n%2===0);
+    return { prompt:"Is "+n+" even or odd?", speak:"Is "+n+" even or odd?", answer: even?"Even":"Odd", choices:["Even","Odd"],
+      hint:"Look at the last digit of "+n+". "+(even?"It ends in an even digit, so it is Even.":"It ends in an odd digit, so it is Odd.") }; }
+  var COINS=[{k:"q",v:25,n:"quarter"},{k:"d",v:10,n:"dime"},{k:"n",v:5,n:"nickel"},{k:"p",v:1,n:"penny"}];
+  function genMoney(){ var set=[], total=0, count=R(2,4), i;
+    for(i=0;i<count;i++){ var c=pick(COINS); if(total+c.v>99) c=COINS[3]; set.push(c); total+=c.v; }
+    var html=""; for(i=0;i<set.length;i++){ html+='<span class="coin '+set[i].k+'">'+set[i].v+'¢</span>'; }
+    return { prompt:"How many cents?", speak:"Add up the coins. How many cents altogether?", answer:total+"¢", choices:shuffle(uniq([total,total+5,total-5<0?total+10:total-5,total+10]).slice(0,4)).map(function(x){ return x+"¢"; }),
+      coins:html, hint:"Add them up: "+set.map(function(c){ return c.v; }).join(" plus ")+" equals "+total+" cents." }; }
+  function genTime(){ var h=R(1,12); var m=pick([0,0,15,30,45]); var label=h+":"+(m<10?"0"+m:m);
+    var choices=uniq([label, h+":"+(m===0?"30":"00"), (h%12+1)+":"+(m<10?"0"+m:m), (h===12?1:h+1)+":"+(m===0?"15":"00")]).slice(0,4);
+    while(choices.length<4){ choices.push(R(1,12)+":"+pick(["00","15","30","45"])); choices=uniq(choices); }
+    return { prompt:"What time is it?", speak:"Look at the clock. What time is it?", answer:label, choices:shuffle(choices).slice(0,4),
+      clock:[h,m], hint:"The short hand points near "+h+", and the long hand shows "+(m===0?"o'clock":m+" minutes")+". So it is "+label+"." }; }
+  function genArrays(){ var rows=R(2,5), cols=R(2,5); var ans=rows*cols;
+    var vis=""; for(var r=0;r<rows;r++){ for(var c=0;c<cols;c++) vis+="🔵"; vis+="<br>"; }
+    return { prompt:rows+" rows of "+cols+" = ?", speak:rows+" rows of "+cols+". How many altogether?", answer:ans, choices:choicesFrom(ans,2,36,4),
+      visual:vis, hint:rows+" groups of "+cols+". Add "+cols+" "+rows+" times, that is "+ans+"." }; }
+  function genWord(){
+    var name=P.name||"Sam"; var add=R(0,1);
+    var a=R(6,45), b=R(3,30); var item=pick(["apples","stickers","marbles","books","crayons","shells","grapes","coins","pencils","buttons"]);
+    var prompt, ans;
+    if(add){ ans=a+b; prompt=name+" has "+a+" "+item+". "+pick(["A friend gives","Mom gives","Dad gives","Grandma gives"])+" "+b+" more. How many "+item+" now?"; }
+    else { if(b>=a){ var t=a; a=b+R(1,10); b=t; } ans=a-b; prompt=name+" has "+a+" "+item+" and "+pick(["gives away","shares","uses"])+" "+b+". How many are left?"; }
+    return { prompt:prompt, speak:prompt, answer:ans, choices:choicesFrom(ans,0,90,6), small:true,
+      hint:(add?"We add. "+a+" and "+b+" more makes "+ans+".":"We take away. "+a+" take away "+b+" leaves "+ans+".") };
+  }
+  function genFraction(){
+    var kind=R(0,2);
+    if(kind===0){ var n=2*R(2,10); return { prompt:"What is HALF of "+n+"?", speak:"What is half of "+n+"?", answer:n/2, choices:choicesFrom(n/2,1,n,3), hint:"Half means 2 equal parts. Half of "+n+" is "+(n/2)+"." }; }
+    if(kind===1){ var m=4*R(2,6); return { prompt:"What is a QUARTER of "+m+"?", speak:"What is a quarter of "+m+"?", answer:m/4, choices:choicesFrom(m/4,1,m,3), hint:"A quarter means 4 equal parts. A quarter of "+m+" is "+(m/4)+"." }; }
+    var d=pick([2,3,4]); var nm={2:"halves",3:"thirds",4:"fourths"};
+    return { prompt:"A pie cut into "+nm[d]+" has how many equal pieces?", speak:"How many equal pieces are in "+nm[d]+"?", answer:d, choices:shuffle([1,2,3,4]), small:true,
+      hint:nm[d].charAt(0).toUpperCase()+nm[d].slice(1)+" means "+d+" equal pieces." };
+  }
+  function genShapes(){
+    var shapes=[{n:"triangle",s:3},{n:"square",s:4},{n:"pentagon",s:5},{n:"hexagon",s:6}];
+    if(R(0,1)){ var sh=pick(shapes); return { prompt:"How many sides does a "+sh.n+" have?", speak:"How many sides does a "+sh.n+" have?", answer:sh.s, choices:shuffle([3,4,5,6]), hint:"A "+sh.n+" has "+sh.s+" straight sides." }; }
+    var t=pick(shapes); return { prompt:"Which shape has "+t.s+" sides?", speak:"Which shape has "+t.s+" sides?", answer:t.n, choices:shuffle(shapes.map(function(x){return x.n;})), small:true, hint:"A "+t.n+" has "+t.s+" sides." };
+  }
+
+  function dots(n){ var s=""; for(var i=0;i<n;i++) s+="●"; return s; }
+
+  /* clock drawing */
+  function clockSVG(h,m){
+    var cx=70,cy=70,r=60;
+    var mAng=(m/60)*2*Math.PI - Math.PI/2;
+    var hAng=(((h%12)+m/60)/12)*2*Math.PI - Math.PI/2;
+    function pt(ang,len){ return [cx+Math.cos(ang)*len, cy+Math.sin(ang)*len]; }
+    var hh=pt(hAng,32), mm=pt(mAng,46);
+    var ticks="";
+    for(var i=0;i<12;i++){ var a=(i/12)*2*Math.PI-Math.PI/2; var p1=pt(a,r-4), p2=pt(a,r-12);
+      ticks+='<line x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)+'" y2="'+p2[1].toFixed(1)+'" stroke="#9fb6b8" stroke-width="2"/>'; }
+    return '<svg width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">'+
+      '<circle cx="70" cy="70" r="62" fill="#fff" stroke="#167b84" stroke-width="4"/>'+ticks+
+      '<line x1="70" y1="70" x2="'+hh[0].toFixed(1)+'" y2="'+hh[1].toFixed(1)+'" stroke="#173b3f" stroke-width="6" stroke-linecap="round"/>'+
+      '<line x1="70" y1="70" x2="'+mm[0].toFixed(1)+'" y2="'+mm[1].toFixed(1)+'" stroke="#e4623f" stroke-width="4" stroke-linecap="round"/>'+
+      '<circle cx="70" cy="70" r="5" fill="#167b84"/></svg>';
+  }
+
+  /* ---- math menu ---- */
+  function knownCount(){ var n=0; for(var i=0;i<TOPICS.length;i++){ var s=P.math.sk[TOPICS[i].id]; if(s&&(s.st==="mastered"||s.st==="known")) n++; } return n; }
+  function showMathMenu(){
+    var intro=$("mathIntro");
+    if(!P.math.diag){
+      intro.innerHTML='<div class="panel"><h2>Let\'s find your starting spot 🧭</h2><p>A short, friendly check — just a few questions. It helps me start you in exactly the right place. No grades, no marks. Everyone starts somewhere!</p><div class="rowbtns" style="justify-content:flex-start;"><button class="pill green" id="goDiag">Start the check</button></div></div>';
+      $("goDiag").addEventListener("click", function(){ go("diag"); });
+      $("mathLadder").innerHTML="";
+      return;
+    }
+    var pct=Math.round((knownCount()/TOPICS.length)*100);
+    var curId=currentTopicId();
+    intro.innerHTML='<div class="panel"><h2>Your math steps</h2><p>You\'ve got '+knownCount()+' of '+TOPICS.length+' steps so far ('+pct+'%). Let\'s keep climbing — gently.</p><div class="rowbtns" style="justify-content:flex-start;"><button class="pill green" id="goPrac">'+(curId?"Keep going ▶":"All done! Practice ▶")+'</button></div></div>';
+    $("goPrac").addEventListener("click", function(){ startPractice(curId||TOPICS[0].id); });
+    var h="",i;
+    for(i=0;i<TOPICS.length;i++){ var t=TOPICS[i]; var s=P.math.sk[t.id]||{st:"locked"};
+      var st=s.st, cls="", label="To do";
+      if(i<P.math.floor){ cls=" known"; label="Known ✓"; }
+      else if(st==="mastered"){ cls=" mastered"; label="Done ✓"; }
+      else if(st==="learning"){ cls=" learning"; label=s.streak+"/"+MASTER; }
+      if(t.id===curId){ cls+=" current"; }
+      h+='<button class="rung'+cls+'" data-topic="'+t.id+'"><span class="re">'+t.e+'</span><b>'+t.n+'</b><span class="state">'+label+'</span></button>';
+    }
+    var lad=$("mathLadder"); lad.innerHTML=h;
+    var bs=lad.querySelectorAll("[data-topic]");
+    for(i=0;i<bs.length;i++){ (function(el){ el.addEventListener("click", function(){ startPractice(el.getAttribute("data-topic")); }); })(bs[i]); }
+  }
+  function currentTopicId(){
+    for(var i=P.math.floor;i<TOPICS.length;i++){ var s=P.math.sk[TOPICS[i].id]; if(!s||s.st!=="mastered") return TOPICS[i].id; }
+    return null;
+  }
+
+  /* ---- diagnostic (walk down to solid ground) ---- */
+  var diagAt=0, diagStartIdx=3, diagQ=null;
+  function showDiagIntro(){
+    $("diagPlay").classList.add("hidden"); $("diagDone").classList.add("hidden");
+    var intro=$("diagIntro"); intro.classList.remove("hidden");
+    intro.innerHTML='<h2>A little check 🧭</h2><p>I\'ll ask a few questions and walk downward until we land on something you feel sure about. That\'s your solid ground — and from there, we build. Ready?</p><div class="rowbtns" style="justify-content:flex-start;"><button class="pill green" id="diagStart">I\'m ready</button></div>';
+    $("diagStart").addEventListener("click", beginDiag);
+  }
+  function beginDiag(){
+    $("diagIntro").classList.add("hidden"); $("diagPlay").classList.remove("hidden");
+    diagAt=Math.min(diagStartIdx, TOPICS.length-1); askDiag();
+  }
+  function askDiag(){
+    var t=TOPICS[diagAt]; diagQ=t.gen();
+    $("diagStep").textContent="Finding your starting spot… ("+t.e+" "+t.n+")";
+    $("diagPrompt").textContent=diagQ.prompt;
+    renderVisual($("diagVisual"), diagQ);
+    renderChoices($("diagChoices"), diagQ, function(ok){
+      if(ok){ finishDiag(diagAt+1); }     // solid here → everything up to & including this is known-ish
+      else { if(diagAt<=0){ finishDiag(0); } else { $("diagStep").textContent="No worries — let's try this one 🙂"; say("Let's try a little easier one.",0.95); diagAt--; setTimeout(askDiag, 950); } }
+    }, true);
+    setTimeout(function(){ say(diagQ.speak, 0.95); }, 250);
+  }
+  function finishDiag(floor){
+    if(floor<0) floor=0; if(floor>TOPICS.length) floor=TOPICS.length;
+    P.math.diag=true; P.math.floor=floor;
+    for(var i=0;i<TOPICS.length;i++){ var s=skOf(TOPICS[i].id); if(i<floor){ s.st="known"; } else if(s.st==="locked"){ s.st="open"; } }
+    persist();
+    $("diagPlay").classList.add("hidden");
+    var dd=$("diagDone"); dd.classList.remove("hidden");
+    var nextName=floor<TOPICS.length?TOPICS[floor].n:"the end — amazing!";
+    dd.innerHTML='<h2>Found it! 🌱</h2><p>'+(floor===0?"We\'ll start right at the beginning — a lovely place to build from.":"You\'re solid up to <b>"+TOPICS[floor-1].n+"</b>.")+'</p><p>Your next step: <b>'+nextName+'</b>. This isn\'t a grade — it just means we start where it fits you best. You\'ve got this!</p><div class="rowbtns" style="justify-content:flex-start;"><button class="pill green" id="diagGo">Start my first step ▶</button></div>';
+    $("diagGo").addEventListener("click", function(){ var id=currentTopicId()||TOPICS[Math.min(floor,TOPICS.length-1)].id; stack=["home","mathmenu"]; startPractice(id); });
+    say("Great! We found your starting spot. Let's begin.", 0.95);
+  }
+
+  /* ---- practice engine ---- */
+  var pracId=null, pracQ=null, pracLock=false, pracTries=0;
+  function startPractice(id){ pracId=id; go("practice"); nextPrac(); }
+  function renderVisual(el, q){
+    var h="";
+    if(q.clock){ el.innerHTML='<div class="clockwrap">'+clockSVG(q.clock[0],q.clock[1])+'</div>'; return; }
+    if(q.coins){ el.innerHTML='<div class="coins">'+q.coins+'</div>'; return; }
+    if(q.stack){ var a=q.stack[0],b=q.stack[1],op=q.stack[2];
+      var pad=Math.max(String(a).length,String(b).length);
+      function padNum(x){ x=String(x); while(x.length<pad) x=" "+x; return x; }
+      var line=""; for(var li=0;li<pad+2;li++){ line+="─"; }
+      el.innerHTML='<pre style="font-family:ui-monospace,\'DejaVu Sans Mono\',\'Courier New\',monospace; font-weight:700; font-size:30px; line-height:1.3; margin:0; color:#173b3f; display:inline-block;">'+"  "+padNum(a)+"\n"+op+" "+padNum(b)+"\n"+line+'</pre>'; return; }
+    el.innerHTML = q.visual || "";
+  }
+  function renderChoices(el, q, cb, isDiag){
+    el.innerHTML="";
+    var ch = q.choices && q.choices.length ? q.choices : (q.two||[]);
+    ch = shuffle(ch);
+    for(var i=0;i<ch.length;i++){ (function(val){
+      var b=document.createElement("button"); b.className="choice"; b.textContent=val;
+      b.addEventListener("click", function(){
+        if(pracLockLocal.v) return;
+        if(String(val)===String(q.answer)){ b.classList.add("good"); pracLockLocal.v=true; cb(true, b); }
+        else { b.classList.add("bad"); cb(false, b); }
+      });
+      el.appendChild(b);
+    })(ch[i]); }
+    pracLockLocal.v=false;
+  }
+  var pracLockLocal={v:false};
+
+  function nextPrac(){
+    var t=TOPICS[tIndex(pracId)]; if(!t){ goHomeRoot(); return; }
+    pracQ=t.gen(); pracTries=0; pracLock=false;
+    $("pracTopic").textContent=t.e+" "+t.n;
+    $("pracPrompt").textContent=pracQ.prompt;
+    $("pracPrompt").style.fontSize = (pracQ.small || pracQ.prompt.length>26) ? "19px" : "";
+    renderVisual($("pracVisual"), pracQ);
+    $("pracExtra").innerHTML="";
+    $("pracFx").textContent=""; $("pracFx").className="feedback";
+    renderPips();
+    renderChoices($("pracChoices"), pracQ, onPracAnswer, false);
+    setTimeout(function(){ say(pracQ.speak, 0.95); }, 250);
+  }
+  function renderPips(){
+    var s=skOf(pracId); var h=""; for(var i=0;i<MASTER;i++){ h+='<span class="pip'+(i<(s.streak||0)?" on":"")+'"></span>'; }
+    $("pracPips").innerHTML=h;
+  }
+  function onPracAnswer(ok, btn){
+    var s=skOf(pracId);
+    if(ok){
+      s.reps=(s.reps||0)+1; s.streak=(s.streak||0)+1; if(s.st!=="mastered") s.st="learning";
+      $("pracFx").className="feedback good"; $("pracFx").textContent=pick(["Yes! 🎉","That's it!","Well done!","Correct!"]);
+      say("Yes! "+pracQ.answer+".", 0.98);
+      renderPips();
+      if(s.streak>=MASTER && s.st!=="mastered"){ masterTopic(); return; }
+      addStars(1);
+      setTimeout(nextPrac, 1100);
+    } else {
+      pracTries++;
+      if(s.streak>0){ s.streak=0; renderPips(); }
+      var sc=nextScripture();
+      $("pracFx").className="feedback soft";
+      if(pracTries===1){
+        $("pracFx").textContent="Almost — have another try 💛";
+        say("Almost! Have another try.", 0.97);
+        // re-enable choices after brief pause
+        setTimeout(function(){ var bs=$("pracChoices").querySelectorAll(".choice"); for(var i=0;i<bs.length;i++){ if(bs[i].classList.contains("bad")) bs[i].classList.remove("bad"); } pracLockLocal.v=false; }, 650);
+      } else {
+        showWorked();
+      }
+      persist();
+    }
+  }
+  function showWorked(){
+    pracLockLocal.v=true;
+    var t=TOPICS[tIndex(pracId)];
+    var sc=nextScripture();
+    $("pracFx").className="feedback soft"; $("pracFx").textContent="Let me show you — the answer is "+pracQ.answer+".";
+    toast(sc.t, sc.r);
+    var ex=$("pracExtra");
+    ex.innerHTML='<div class="panel" style="margin-top:12px; text-align:left;"><p style="color:#1f7a49;">💡 '+(pracQ.hint||t.strat)+'</p></div>';
+    // reveal correct choice
+    var bs=$("pracChoices").querySelectorAll(".choice"); var found=null;
+    for(var i=0;i<bs.length;i++){ if(bs[i].textContent===String(pracQ.answer)){ bs[i].classList.add("good"); found=bs[i]; } }
+    if(found){ try{ found.scrollIntoView({block:"center"}); }catch(e){} }
+    say((pracQ.hint||t.strat), 0.92, function(){ setTimeout(nextPrac, 900); });
+  }
+  function masterTopic(){
+    var s=skOf(pracId); s.st="mastered"; s.streak=MASTER; persist();
+    var t=TOPICS[tIndex(pracId)];
+    addStars(3); confetti();
+    $("pracFx").className="feedback good"; $("pracFx").textContent="🌟 You've got "+t.n+"!";
+    toast("New step done: "+t.n+"! 🌟");
+    say("Amazing! You have mastered "+t.n+"! Let's keep climbing.", 0.95, function(){
+      P.badges[pracId]=1; persist();
+      var nextId=currentTopicId();
+      setTimeout(function(){ if(nextId){ pracId=nextId; nextPrac(); } else { stack=["home","mathmenu"]; render("mathmenu"); } }, 700);
+    });
+  }
+  $("pracHint").addEventListener("click", function(){
+    var t=TOPICS[tIndex(pracId)];
+    var ex=$("pracExtra"); ex.innerHTML='<div class="panel" style="margin-top:12px; text-align:left;"><p style="color:#1f7a49;">💡 '+(pracQ.hint||t.strat)+'</p></div>';
+    say(pracQ.hint||t.strat, 0.92);
+  });
+  $("pracSkip").addEventListener("click", function(){ stopSpeak(); nextPrac(); });
+  $("pracSay").addEventListener("click", function(){ if(pracQ) say(pracQ.speak, 0.95); });
+  $("diagSay").addEventListener("click", function(){ if(diagQ) say(diagQ.speak, 0.95); });
+
+  /* ================= PARENT ================= */
+  var PIN="2020", pinEntry="";
+  function renderPinDots(){ var d=""; for(var i=0;i<pinEntry.length;i++) d+="●"; $("pinDots").textContent=d; }
+  function buildKeys(){ var keys=$("keys"); keys.innerHTML=""; var labels=["1","2","3","4","5","6","7","8","9","⌫","0","OK"];
+    for(var i=0;i<labels.length;i++){ (function(lbl){ var k=document.createElement("button"); k.className="key"; k.textContent=lbl;
+      k.addEventListener("click", function(){ $("pinErr").textContent="";
+        if(lbl==="⌫"){ pinEntry=pinEntry.slice(0,-1); } else if(lbl==="OK"){ checkPin(); return; } else if(pinEntry.length<4){ pinEntry+=lbl; }
+        renderPinDots(); if(pinEntry.length===4) checkPin(); });
+      keys.appendChild(k); })(labels[i]); } }
+  function checkPin(){ if(pinEntry===PIN){ pinEntry=""; renderPinDots(); $("pinView").classList.add("hidden"); $("dashView").classList.remove("hidden"); renderDash(); } else { $("pinErr").textContent="Try again"; pinEntry=""; renderPinDots(); } }
+  function renderDash(){
+    $("dashName").textContent=(P.name||"Friend")+"'s progress";
+    var mathDone=knownCount(), mathTotal=TOPICS.length;
+    var stories=0; for(var k in P.story.done){ if(P.story.done.hasOwnProperty(k)) stories++; }
+    var h="";
+    h+='<div class="statline"><b>⭐ Stars earned</b><span>'+P.stars+'</span></div>';
+    h+='<div class="statline"><b>🔢 Math steps</b><span>'+mathDone+' / '+mathTotal+(P.math.diag?'':' (no check yet)')+'</span></div>';
+    h+='<div class="statline"><b>📚 Stories read</b><span>'+stories+' / '+STORIES.length+'</span></div>';
+    h+='<div class="statline"><b>🏅 Badges</b><span>'+Object.keys(P.badges).length+'</span></div>';
+    if(P.math.diag){ var cur=currentTopicId(); h+='<div class="statline"><b>Working on</b><span>'+(cur?TOPICS[tIndex(cur)].n:'All done 🎉')+'</span></div>'; }
+    $("dashStats").innerHTML=h;
+  }
+  function openParent(){ pinEntry=""; renderPinDots(); $("pinErr").textContent=""; $("pinView").classList.remove("hidden"); $("dashView").classList.add("hidden"); $("overlay").classList.add("open"); }
+  function closeParent(){ $("overlay").classList.remove("open"); }
+  $("gearBtn").addEventListener("click", openParent);
+  $("pinCancel").addEventListener("click", closeParent);
+  $("dashDone").addEventListener("click", closeParent);
+  $("overlay").addEventListener("click", function(e){ if(e.target===$("overlay")) closeParent(); });
+  $("changeName").addEventListener("click", function(){
+    var nm=prompt("Child's name:", P.name||"");
+    if(nm && nm.trim()){ P.name=nm.trim().charAt(0).toUpperCase()+nm.trim().slice(1); persist(); paintProfile(); renderDash(); }
+  });
+  $("resetAll").addEventListener("click", function(){
+    if(window.confirm("Reset ALL progress and stars? This cannot be undone.")){
+      var nm=P.name; P=freshProfile(nm); persist(); paintProfile(); renderDash();
+      toast("Progress reset ✨");
+    }
+  });
+
+  /* ================= boot ================= */
+  buildKeys();
+  if(P){ paintProfile(); }
+  initWelcome();
+
+  /* service worker */
+  if("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }
+
+  /* keep audio alive on first tap (mobile) */
+  document.addEventListener("touchstart", function once(){ try{ if("speechSynthesis" in window){ var u=new SpeechSynthesisUtterance(""); speechSynthesis.speak(u); } }catch(e){} document.removeEventListener("touchstart", once); }, {passive:true});
+})();
+</script>
+</body>
+</html>
