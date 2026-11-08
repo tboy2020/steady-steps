@@ -468,6 +468,16 @@
 
   var KEY="ss_profile_v1";
   var P = loadJSON(KEY, null);
+  if(P && typeof P==="object"){
+    if(typeof P.stars!=="number") P.stars=0;
+    if(!P.badges||typeof P.badges!=="object") P.badges={};
+    if(!P.sight||typeof P.sight!=="object") P.sight={i:0};
+    if(!P.spell||typeof P.spell!=="object") P.spell={set:0,i:0};
+    if(!P.story||typeof P.story!=="object") P.story={done:{}};
+    if(!P.story.done) P.story.done={};
+    if(!P.math||typeof P.math!=="object") P.math={diag:false,floor:0,cur:0,sk:{}};
+    if(!P.math.sk||typeof P.math.sk!=="object") P.math.sk={};
+  }
   function freshProfile(name){
     return { name:name||"", stars:0, badges:{},
       sight:{i:0}, spell:{set:0,i:0},
@@ -800,7 +810,7 @@
     {name:"Blends", e:"⚡", words:[["stop","Stop at the red light."],["frog","The frog can jump."],["hand","Please hold my hand."],["jump","I can jump up high."],["milk","I drink my milk."],["nest","The bird made a nest."],["gift","I got a nice gift."],["clap","Clap your hands."],["plant","We plant a little seed."],["truck","The truck is very big."],["desk","My books are on the desk."],["swim","We swim in the summer."],["grin","He had a big grin."],["spot","The dog has one spot."],["skip","Watch me skip and hop."]]},
     {name:"Digraphs", e:"🐟", words:[["ship","The ship is on the sea."],["fish","The fish can swim."],["chin","Wipe your chin."],["that","I like that book."],["then","We ate, and then we slept."],["when","When is your party?"],["with","Come with me."],["bath","Take a warm bath."],["much","Thank you so much."],["shop","We shop for our food."],["chop","We chop the wood."],["such","It was such fun."],["this","This is my house."],["path","Walk on the path."],["rich","The kind king was rich."]]},
     {name:"Vowel Teams", e:"🌈", words:[["rain","The rain is wet."],["boat","The boat floats."],["seed","Plant the little seed."],["tree","The tree is very tall."],["road","Cross the road safely."],["coat","Wear your warm coat."],["team","Our team won the game."],["moon","The moon is bright."],["play","Let us play outside."],["beach","We swim at the beach."],["meat","We cooked the meat."],["soap","Wash up with soap."],["feet","I have two feet."],["train","The train is very fast."],["sweet","The candy is sweet."]]},
-    {name:"Bossy R", e:"🐎", words:[["car","Dad drives the car."],["star","I see a bright star."],["bird","The bird can sing."],["corn","We eat sweet corn."],["turn","Now it is your turn."],["farm","Cows live on a farm."],["park","We play at the park."],["girl","The girl is very kind."],["horn","The car has a horn."],["dark","It is dark at night."],["hurt","I did not get hurt."],["born","A baby was born."],["shark","A shark has sharp teeth."],["storm","The storm was very loud."],["chair","Sit on the chair."]]},
+    {name:"Bossy R", e:"🐎", words:[["car","Dad drives the car."],["star","I see a bright star."],["bird","The bird can sing."],["corn","We eat sweet corn."],["turn","Now it is your turn."],["farm","Cows live on a farm."],["park","We play at the park."],["girl","The girl is very kind."],["horn","The car has a horn."],["dark","It is dark at night."],["hurt","I did not get hurt."],["born","A baby was born."],["shark","A shark has sharp teeth."],["storm","The storm was very loud."],["shirt","I wear a clean shirt."]]},
     {name:"Tricky Words", e:"👑", words:[["friend","My best friend is here."],["school","I go to school."],["people","Many people came today."],["little","The little dog ran."],["happy","I feel so happy."],["again","Let us do it again."],["water","Please drink some water."],["house","We live in a house."],["family","I love my family."],["pretty","The flower is pretty."],["mouse","The mouse is very small."],["funny","That joke is funny."],["another","I want another one."],["birthday","Happy birthday to you!"],["favorite","Blue is my favorite color."]]}
   ];
   var spSet=0, spQueue=[], spI=0, spWord="", spSent="", spSlots=[], spFill=[], spTiles=[], spAtt=0, spLock=false;
@@ -835,7 +845,7 @@
   function spOnSlot(s){ if(spLock||spSlots[s]==null) return; var bi=spFill[s]; if(bi!=null&&spTiles[bi]) spTiles[bi].used=false; spSlots[s]=null; spFill[s]=null; renderSpSlots(); renderSpBank(); }
   function spClear(){ for(var i=0;i<spSlots.length;i++){ var bi=spFill[i]; if(bi!=null&&spTiles[bi]) spTiles[bi].used=false; spSlots[i]=null; spFill[i]=null; } renderSpSlots(); renderSpBank(); }
   function spBlankSent(){ try{ return spSent.replace(new RegExp("\\b"+spWord+"\\b","i"),"———"); }catch(e){ return spSent; } }
-  function spNext(){ spI++; if(spI>=spQueue.length){ buildSpQueue(); toast("New words! Keep going 🌟"); } loadSpWord(); }
+  function spNext(){ spI++; if(spI>=spQueue.length){ spSet=(spSet+1)%SPELLBANK.length; if(!P.spell) P.spell={}; P.spell.set=spSet; persist(); buildSpQueue(); toast("New words! Keep going 🌟"); } loadSpWord(); }
   function spCheck(){
     if(spLock) return; var built="",i; for(i=0;i<spSlots.length;i++){ if(spSlots[i]==null){ $("spellFx").textContent="Fill all the boxes first 🙂"; return; } built+=spSlots[i]; }
     if(built===spWord){ spLock=true; renderSpSlots("correct"); reward(1,"You spelled "+spWord+"!"); say("Yes! You spelled "+spWord+"!",0.9); setTimeout(spNext,1500); }
@@ -873,7 +883,8 @@
   function choicesFrom(ans, lo, hi, spread){
     var set=[ans], tries=0; spread=spread||5;
     while(set.length<4 && tries<80){ var d=ans + (R(0,1)?1:-1)*R(1,spread); if(d>=lo && d<=hi && set.indexOf(d)<0) set.push(d); tries++; }
-    while(set.length<4){ var r=R(lo,hi); if(set.indexOf(r)<0) set.push(r); }
+    var t2=0; while(set.length<4 && t2<300){ var r=R(lo,hi); if(set.indexOf(r)<0) set.push(r); t2++; }
+    while(set.length<4){ set.push(ans + set.length); }
     return shuffle(set);
   }
   function genCompare(){
@@ -917,7 +928,9 @@
   function genMoney(){ var set=[], total=0, count=R(2,4), i;
     for(i=0;i<count;i++){ var c=pick(COINS); if(total+c.v>99) c=COINS[3]; set.push(c); total+=c.v; }
     var html=""; for(i=0;i<set.length;i++){ html+='<span class="coin '+set[i].k+'">'+set[i].v+'¢</span>'; }
-    return { prompt:"How many cents?", speak:"Add up the coins. How many cents altogether?", answer:total+"¢", choices:shuffle(uniq([total,total+5,total-5<0?total+10:total-5,total+10]).slice(0,4)).map(function(x){ return x+"¢"; }),
+    var opts=[total], deltas=[5,10,-5,15,-10,20,25];
+    for(var oi=0; oi<deltas.length && opts.length<4; oi++){ var ov=total+deltas[oi]; if(ov>=0 && opts.indexOf(ov)<0) opts.push(ov); }
+    return { prompt:"How many cents?", speak:"Add up the coins. How many cents altogether?", answer:total+"¢", choices:shuffle(opts).map(function(x){ return x+"¢"; }),
       coins:html, hint:"Add them up: "+set.map(function(c){ return c.v; }).join(" plus ")+" equals "+total+" cents." }; }
   function genTime(){ var h=R(1,12); var m=pick([0,0,15,30,45]); var label=h+":"+(m<10?"0"+m:m);
     var choices=uniq([label, h+":"+(m===0?"30":"00"), (h%12+1)+":"+(m<10?"0"+m:m), (h===12?1:h+1)+":"+(m===0?"15":"00")]).slice(0,4);
@@ -1061,7 +1074,7 @@
       b.addEventListener("click", function(){
         if(pracLockLocal.v) return;
         if(String(val)===String(q.answer)){ b.classList.add("good"); pracLockLocal.v=true; cb(true, b); }
-        else { b.classList.add("bad"); cb(false, b); }
+        else { b.classList.add("bad"); if(isDiag) pracLockLocal.v=true; cb(false, b); }
       });
       el.appendChild(b);
     })(ch[i]); }
@@ -1070,6 +1083,7 @@
   var pracLockLocal={v:false};
 
   function nextPrac(){
+    if(cur()!=="practice") return;
     var t=TOPICS[tIndex(pracId)]; if(!t){ goHomeRoot(); return; }
     pracQ=t.gen(); pracTries=0; pracLock=false;
     $("pracTopic").textContent=t.e+" "+t.n;

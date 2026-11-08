@@ -1,5 +1,5 @@
 /* Steady Steps — service worker (offline-first) */
-var CACHE = "steady-steps-v1";
+var CACHE = "steady-steps-v2";
 var CORE = [
   "./",
   "./index.html",
