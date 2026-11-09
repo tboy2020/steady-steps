@@ -1212,5 +1212,6 @@
   document.addEventListener("touchstart", function once(){ try{ if("speechSynthesis" in window){ var u=new SpeechSynthesisUtterance(""); speechSynthesis.speak(u); } }catch(e){} document.removeEventListener("touchstart", once); }, {passive:true});
 })();
 </script>
+<script src="install-button.js" defer></script>
 </body>
 </html>

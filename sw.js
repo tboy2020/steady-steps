@@ -1,10 +1,11 @@
 /* Steady Steps — service worker (offline-first) */
-var CACHE = "steady-steps-v2";
+var CACHE = "steady-steps-v3";
 var CORE = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon.svg"
+  "./icon.svg",
+  "./install-button.js"
 ];
 
 self.addEventListener("install", function(e){
